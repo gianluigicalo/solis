@@ -1,0 +1,85 @@
+spring:
+  application:
+    name: energy-advisor
+  threads:
+    virtual:
+      enabled: true
+  jackson:
+    deserialization:
+      # Nelle simulazioni i campi numerici omessi valgono 0 invece di dare errore
+      fail-on-null-for-primitives: false
+  # Database TimescaleDB (progetto database). In Docker: jdbc:postgresql://database:5432/solis
+  datasource:
+    url: jdbc:postgresql://localhost:15432/solis
+    username: solis
+    password: solis
+
+server:
+  port: 8080
+
+advisor:
+  # API REST degli altri due servizi. Default: i container sull'host (porte 10080 e 10081);
+  # dentro Docker: http://inverter:8080 e http://openmeteo:8080
+  inverter-url: http://localhost:10080
+  openmeteo-url: http://localhost:10081
+  timeout: 15s
+  timezone: Europe/Rome
+  # Ogni quanto valutare le regole in background (formato ISO-8601)
+  check-interval: PT5M
+  # Raccolta dello storico nel database
+  history:
+    enabled: true
+    # Lettura di tutti i registri dell'inverter
+    inverter-interval: PT1M
+    # Previsione corrente Open-Meteo (weather_hourly): le ore passate vengono riscaricate e convergono al dato
+    # analizzato. Non viene archiviata: l'archivio delle previsioni segue forecast-runs
+    weather-interval: PT1H
+    # Previsioni archiviate in weather_forecast_run per la pagina Affidabilità: la sera per il giorno dopo, prima
+    # dell'alba, dopo l'alba, a mezzogiorno solare, prima del tramonto e al tramonto (alba e tramonto da Open-Meteo).
+    # Un orario saltato (servizio fermo) viene recuperato al controllo successivo
+    forecast-runs:
+      check-interval: PT5M
+      evening: "21:00"
+      before-sunrise: PT1H
+      after-sunrise: PT2H
+      before-sunset: PT3H
+    past-days: 1
+    forecast-days: 3
+    # Grandezze orarie salvate (nomi Open-Meteo)
+    forecast-variables: [temperature_2m, relative_humidity_2m, apparent_temperature, precipitation,
+                         precipitation_probability, weather_code, cloud_cover, cloud_cover_low, pressure_msl,
+                         wind_speed_10m, wind_direction_10m, wind_gusts_10m, is_day, uv_index,
+                         shortwave_radiation, direct_radiation, diffuse_radiation, direct_normal_irradiance]
+    # Per ogni falda
+    solar-variables: [global_tilted_irradiance]
+    # Import dello storico (/api/history/weather/backfill): grandezze disponibili nell'archivio ERA5
+    archive-variables: [temperature_2m, relative_humidity_2m, apparent_temperature, precipitation, weather_code,
+                        cloud_cover, cloud_cover_low, pressure_msl, wind_speed_10m, wind_direction_10m,
+                        wind_gusts_10m, is_day, shortwave_radiation, direct_radiation, diffuse_radiation,
+                        direct_normal_irradiance]
+  # Impostazioni dell'impianto usate solo al primo avvio (poi modificabili con PUT /api/settings)
+  defaults:
+    # Due batterie da 10.000 Wh (energie in Wh, potenze in W)
+    battery-capacity-wh: 20000
+    performance-ratio: 0.80
+    # Trina bifacciale da 615 W (il guadagno del lato posteriore rientra nel performance ratio)
+    panel-peak-power-w: 615
+    # Solis S6-EH1P6K-L-PLUS (scheda tecnica Global V2.0 06/2024)
+    inverter:
+      max-pv-input-w: 9600
+      rated-output-w: 6000
+      max-battery-power-w: 6000
+    # Pannelli di ogni stringa per falda (nomi delle falde del servizio openmeteo)
+    strings:
+      pv1:
+        falda10: 7
+        falda17: 2
+      pv2:
+        falda17: 10
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs

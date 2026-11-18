@@ -1,0 +1,100 @@
+<div class="page">
+  <div class="page-header">
+    <h1>Meteo</h1>
+    @if (location(); as l) {
+      <span class="meta">{{ l.latitude }} N, {{ l.longitude }} E · {{ l.timezone }}</span>
+    }
+    @if (loadedAt(); as t) { <span class="meta">· aggiornato {{ fmtTime(t) }}</span> }
+    <button mat-stroked-button (click)="load()"><span class="material-symbols-outlined">refresh</span> Aggiorna</button>
+  </div>
+
+  @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
+  @if (error(); as e) { <div class="error-box"><span class="material-symbols-outlined">error</span>{{ e }}</div> }
+
+  @if (forecast(); as f) {
+    <div class="now card">
+      <span class="material-symbols-outlined big">{{ weatherIcon(current('weather_code'), current('is_day') === 1) }}</span>
+      <div class="now-main">
+        <div class="temp">{{ fmtNumber(current('temperature_2m')) }}<small>°C</small></div>
+        <div>{{ weatherLabel(current('weather_code')) }}</div>
+        <div class="muted">Percepita {{ fmtNumber(current('apparent_temperature')) }} °C</div>
+      </div>
+      <div class="now-grid">
+        <div><span class="muted">Umidità</span>{{ fmtNumber(current('relative_humidity_2m'), 0) }} %</div>
+        <div><span class="muted">Nuvolosità</span>{{ fmtNumber(current('cloud_cover'), 0) }} %</div>
+        <div><span class="muted">Precipitazioni</span>{{ fmtNumber(current('precipitation')) }} mm</div>
+        <div><span class="muted">Pressione</span>{{ fmtNumber(current('pressure_msl'), 0) }} hPa</div>
+        <div>
+          <span class="muted">Vento</span>{{ fmtNumber(current('wind_speed_10m')) }} km/h
+          <span class="material-symbols-outlined wind" [style.transform]="'rotate(' + ((current('wind_direction_10m') ?? 0) + 180) + 'deg)'">navigation</span>
+        </div>
+        <div><span class="muted">Raffiche</span>{{ fmtNumber(current('wind_gusts_10m')) }} km/h</div>
+      </div>
+    </div>
+
+    <div class="hours card">
+      @for (h of next24h(); track h.time) {
+        <div class="hour">
+          <span class="muted">{{ fmtTime(h.time) }}</span>
+          <span class="material-symbols-outlined" [matTooltip]="weatherLabel(h.code)">{{ weatherIcon(h.code) }}</span>
+          <strong>{{ fmtNumber(h.temp, 0) }}°</strong>
+          <span class="rain" [class.muted]="!h.rain">{{ fmtNumber(h.rain, 0) }}%</span>
+        </div>
+      }
+    </div>
+
+    <div class="grid-2">
+      <div class="card">
+        <h2><span class="material-symbols-outlined">thermostat</span>Prossime 72 ore</h2>
+        <app-line-chart [series]="weatherSeries()" [height]="300" />
+      </div>
+      <div class="card">
+        <h2><span class="material-symbols-outlined">wb_sunny</span>Irraggiamento</h2>
+        <app-line-chart [series]="solarSeries()" [height]="300" />
+        <div class="planes muted">
+          @for (p of planes(); track p[0]) {
+            <span>{{ p[0] }}: inclinazione {{ p[1].tilt }}°, azimut {{ p[1].azimuth }}°</span>
+          }
+        </div>
+      </div>
+    </div>
+
+    <h2 class="section-title">Prossimi giorni</h2>
+    <div class="days">
+      @for (d of days(); track d.date) {
+        <div class="card day">
+          <div class="day-head">
+            <strong>{{ fmtDay(d.date) }}</strong>
+            <span class="material-symbols-outlined" [matTooltip]="weatherLabel(d.code)">{{ weatherIcon(d.code) }}</span>
+          </div>
+          <div class="minmax"><span class="warn">{{ fmtNumber(d.max, 0) }}°</span> / <span class="muted">{{ fmtNumber(d.min, 0) }}°</span></div>
+          <div class="muted small">{{ weatherLabel(d.code) }}</div>
+          <dl>
+            <dt>Pioggia</dt><dd>{{ fmtNumber(d.rain) }} mm · {{ fmtNumber(d.rainProb, 0) }}%</dd>
+            <dt>Sole</dt><dd>{{ fmtNumber(d.sunshineH) }} h</dd>
+            <dt>Radiazione</dt><dd>{{ fmtNumber(d.radiation) }} MJ/m²</dd>
+            <dt>UV max</dt><dd>{{ fmtNumber(d.uv) }}</dd>
+            <dt>Alba / tramonto</dt><dd>{{ fmtTime(d.sunrise) }} – {{ fmtTime(d.sunset) }}</dd>
+          </dl>
+        </div>
+      }
+    </div>
+  }
+
+  @if (air(); as a) {
+    <h2 class="section-title">Qualità dell'aria</h2>
+    <div class="grid">
+      @if (aqi(); as q) {
+        <div class="stat"><div class="label">Indice europeo (EAQI)</div><div class="value" [class]="q.css">{{ fmtNumber(q.value, 0) }}</div><div class="sub">{{ q.label }}</div></div>
+      }
+      <div class="stat"><div class="label">PM10</div><div class="value small-value">{{ airValue('pm10') }}</div></div>
+      <div class="stat"><div class="label">PM2.5</div><div class="value small-value">{{ airValue('pm2_5') }}</div></div>
+      <div class="stat"><div class="label">Ozono</div><div class="value small-value">{{ airValue('ozone') }}</div></div>
+      <div class="stat"><div class="label">Biossido di azoto</div><div class="value small-value">{{ airValue('nitrogen_dioxide') }}</div></div>
+      <div class="stat"><div class="label">Monossido di carbonio</div><div class="value small-value">{{ airValue('carbon_monoxide') }}</div></div>
+      <div class="stat"><div class="label">Indice UV</div><div class="value small-value">{{ airValue('uv_index') }}</div></div>
+    </div>
+  }
+
+  <p class="muted credits">Dati meteo: <a href="https://open-meteo.com" target="_blank" rel="noopener">Open-Meteo.com</a> (CC BY 4.0)</p>
+</div>

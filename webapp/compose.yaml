@@ -1,0 +1,48 @@
+services:
+  webapp:
+    build: .
+    image: solis-webapp:latest
+    container_name: solis-webapp
+    restart: unless-stopped
+    ports:
+      # unico servizio raggiungibile da tutti gli indirizzi, IPv4 e IPv6 (senza indirizzo = 0.0.0.0 e [::]);
+      # per limitarlo a questa macchina: WEBAPP_BIND_ADDRESS=127.0.0.1 nel file .env
+      - "${WEBAPP_BIND_ADDRESS:-}${WEBAPP_BIND_ADDRESS:+:}${WEBAPP_HTTP_PORT:-10088}:80"
+    environment:
+      TZ: Europe/Rome
+      # Servizi del compose principale; per avviare solo questo progetto puntali all'host,
+      # es. http://host.docker.internal:10080
+      INVERTER_URL: ${WEBAPP_INVERTER_URL:-http://inverter:8080}
+      OPENMETEO_URL: ${WEBAPP_OPENMETEO_URL:-http://openmeteo:8080}
+      ADVISOR_URL: ${WEBAPP_ADVISOR_URL:-http://advisor:8080}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  # Sviluppo: "ng serve" con ricarica automatica, Node dentro il container e sorgenti montati.
+  # Avvio: docker compose --profile dev up webapp-dev   ->  http://localhost:10089
+  webapp-dev:
+    profiles: [dev]
+    # stessa versione di node.version in pom.xml
+    image: node:22.23.4-alpine
+    container_name: solis-webapp-dev
+    working_dir: /app
+    command: ["sh", "-c", "npm ci --no-audit --no-fund && npx ng serve --host :: --port 4200 --poll 2000"]
+    ports:
+      # solo da questa macchina, IPv4 e IPv6 (BIND_ADDRESS=0.0.0.0 e BIND_ADDRESS6=[::] per esporre in rete)
+      - "${BIND_ADDRESS:-127.0.0.1}:${WEBAPP_DEV_PORT:-10089}:4200"
+      - "${BIND_ADDRESS6:-[::1]}:${WEBAPP_DEV_PORT:-10089}:4200"
+    environment:
+      TZ: Europe/Rome
+      INVERTER_URL: ${WEBAPP_INVERTER_URL:-http://inverter:8080}
+      OPENMETEO_URL: ${WEBAPP_OPENMETEO_URL:-http://openmeteo:8080}
+      ADVISOR_URL: ${WEBAPP_ADVISOR_URL:-http://advisor:8080}
+      NG_CLI_ANALYTICS: "false"
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    volumes:
+      - ./:/app
+      # node_modules del container separati da quelli dell'host (Alpine usa binari diversi)
+      - webapp-dev-node-modules:/app/node_modules
+
+volumes:
+  webapp-dev-node-modules:

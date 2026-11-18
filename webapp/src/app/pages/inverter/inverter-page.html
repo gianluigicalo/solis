@@ -1,0 +1,60 @@
+<div class="page">
+  <div class="page-header">
+    <h1>Inverter</h1>
+    @if (summary(); as s) {
+      <span class="meta wide-only">Lettura {{ fmtFullDateTime(s.readAt) }} · aggiornamento ogni 10 s</span>
+    }
+  </div>
+
+  @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
+  @if (error(); as e) {
+    <div class="error-box"><span class="material-symbols-outlined">error</span>{{ e }}</div>
+  }
+
+  @if (summary(); as s) {
+    <div class="card flow-card">
+      <app-power-flow [data]="s" [strings]="pvStrings()" [busVoltage]="busVoltage()" [acCurrent]="acCurrent()"
+                      [gridVoltage]="gridVoltage()" [gridCurrent]="gridCurrent()"
+                      [batteryCapacityWh]="batteryCapacityWh()" />
+    </div>
+  }
+
+  @if (info(); as i) {
+    <h2 class="section-title">Inverter</h2>
+    <div class="grid-2">
+      <div class="card">
+        <h2><span class="material-symbols-outlined">monitor_heart</span>Stato</h2>
+        <dl class="kv">
+          <dt>Stato</dt><dd>{{ i.statusDescription }} <span class="muted">({{ i.status }})</span></dd>
+          <dt>Modalità</dt><dd>{{ i.operatingMode }}</dd>
+          <dt>Accumulo</dt>
+          <dd>@for (m of i.storageModes; track m) { <span class="badge info">{{ m }}</span> } @empty { — }</dd>
+          <dt>Funzionamento</dt>
+          <dd>@for (m of i.operatingStatus; track m) { <span class="badge">{{ m }}</span> } @empty { — }</dd>
+          <dt>Guasti</dt>
+          <dd>
+            @for (f of i.activeFaults; track f) { <span class="badge bad">{{ f }}</span> }
+            @empty { <span class="badge ok">Nessun guasto</span> }
+          </dd>
+        </dl>
+      </div>
+      <div class="card">
+        <h2><span class="material-symbols-outlined">info</span>Identificazione</h2>
+        <dl class="kv">
+          <dt>Modello</dt><dd>{{ i.productModel }} ({{ i.modelDefinition }})</dd>
+          <dt>Numero di serie</dt><dd>{{ i.serialNumber }}</dd>
+          <dt>Firmware DSP / HMI</dt><dd>{{ i.dspSoftwareVersion }} / {{ i.hmiSoftwareVersion }}</dd>
+          <dt>Protocollo</dt><dd>{{ i.protocolVersion }}</dd>
+          <dt>Uscita AC</dt><dd>{{ i.acOutputType }} · {{ i.dcInputs }} ingressi DC</dd>
+          <dt>Norma di rete</dt><dd>{{ i.gridStandard }}</dd>
+          <dt>Batteria</dt><dd>{{ i.batteryModel }}</dd>
+          <dt>Contatore</dt><dd>{{ i.meter }}</dd>
+          <dt>Limite immissione</dt><dd>{{ fmtNumber(i.exportLimit, 0) }} W</dd>
+          <dt>Orologio inverter</dt><dd>{{ fmtFullDateTime(i.inverterClock) }}</dd>
+        </dl>
+      </div>
+    </div>
+  }
+
+  <p class="muted more">Tutti i valori letti dall'inverter sono nella pagina <a routerLink="/registri">Registri</a>.</p>
+</div>

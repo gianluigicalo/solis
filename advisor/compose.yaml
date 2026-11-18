@@ -1,0 +1,25 @@
+services:
+  advisor:
+    build: .
+    image: energy-advisor:latest
+    container_name: energy-advisor
+    # Senza database l'app non parte: viene riavviata finché il database non è pronto
+    restart: unless-stopped
+    ports:
+      # solo da questa macchina, IPv4 e IPv6 (BIND_ADDRESS=0.0.0.0 e BIND_ADDRESS6=[::] per esporre in rete)
+      - "${BIND_ADDRESS:-127.0.0.1}:${ADVISOR_HTTP_PORT:-10082}:8080"
+      - "${BIND_ADDRESS6:-[::1]}:${ADVISOR_HTTP_PORT:-10082}:8080"
+    environment:
+      TZ: Europe/Rome
+      # Nomi dei servizi del compose principale (cartella superiore). Se avvii solo questo progetto,
+      # punta agli altri servizi tramite l'host, es. http://host.docker.internal:10080
+      ADVISOR_INVERTER_URL: ${ADVISOR_INVERTER_URL:-http://inverter:8080}
+      ADVISOR_OPENMETEO_URL: ${ADVISOR_OPENMETEO_URL:-http://openmeteo:8080}
+      ADVISOR_CHECK_INTERVAL: ${ADVISOR_CHECK_INTERVAL:-PT5M}
+      ADVISOR_HISTORY_ENABLED: ${ADVISOR_HISTORY_ENABLED:-true}
+      # Database del progetto database (regole, impostazioni, storico)
+      SPRING_DATASOURCE_URL: ${ADVISOR_DATASOURCE_URL:-jdbc:postgresql://database:5432/solis}
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER:-solis}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD:-solis}
+    extra_hosts:
+      - "host.docker.internal:host-gateway"

@@ -1,0 +1,10 @@
+#!/bin/sh
+# npm con il Node.js installato nel progetto (webapp/node) da "mvn -P -IC initialize".
+# Esempi: ./npmw install   ./npmw start   ./npmw run build
+DIR=$(cd "$(dirname "$0")" && pwd)
+if [ ! -x "$DIR/node/node" ]; then
+  echo "Node non ancora installato nel progetto: esegui prima  mvn -P -IC initialize" >&2
+  exit 1
+fi
+export PATH="$DIR/node:$PATH"
+exec "$DIR/node/node" "$DIR/node/node_modules/npm/bin/npm-cli.js" "$@"

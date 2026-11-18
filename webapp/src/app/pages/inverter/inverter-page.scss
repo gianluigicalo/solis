@@ -1,0 +1,9 @@
+.kv {
+  display: grid; grid-template-columns: 170px 1fr; gap: 8px 12px; margin: 0; font-size: 14px;
+  dt { color: var(--muted); }
+  dd { margin: 0; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+}
+
+.more { margin: 20px 0 0; font-size: 13px; }
+
+.flow-card { margin-bottom: 16px; padding: 12px; }

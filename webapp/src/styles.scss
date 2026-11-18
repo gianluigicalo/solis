@@ -1,0 +1,103 @@
+@use '@angular/material' as mat;
+
+html {
+  color-scheme: dark;
+  @include mat.theme((
+    color: (
+      theme-type: dark,
+      primary: mat.$azure-palette,
+      tertiary: mat.$orange-palette,
+    ),
+    typography: Roboto,
+    density: 0,
+  ));
+
+  --ok: #8be28b;
+  --warn: #ffb86b;
+  --bad: #ff7b9c;
+  --muted: var(--mat-sys-on-surface-variant);
+  --card: var(--mat-sys-surface-container);
+  --card-high: var(--mat-sys-surface-container-high);
+  --line: var(--mat-sys-outline-variant);
+}
+
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: Roboto, 'Helvetica Neue', sans-serif;
+  background: var(--mat-sys-surface);
+  color: var(--mat-sys-on-surface);
+}
+
+.material-symbols-outlined { font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24; }
+
+/* ---------- layout comune delle pagine ---------- */
+.page { padding: 20px 24px 40px; max-width: 1500px; margin: 0 auto; }
+.page-header {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 16px;
+  h1 { font: var(--mat-sys-headline-small); margin: 0; flex: 1; }
+  .meta { color: var(--muted); font-size: 13px; }
+}
+/* smartphone e tablet in verticale (stesso limite del menu a scomparsa): il titolo della pagina sta nella barra in alto */
+@media (max-width: 899.98px) {
+  .page-header h1 { display: none; }
+  .wide-only { display: none; }
+  /* intestazione senza altro da mostrare oltre a titolo e lettura: niente riga vuota */
+  .page-header:not(:has(> :not(h1, .wide-only))) { display: none; }
+}
+@media (max-width: 599.98px) {
+  .page { padding: 12px 12px 32px; }
+  .grid { grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); }
+}
+.section-title { font: var(--mat-sys-title-medium); margin: 28px 0 12px; color: var(--mat-sys-on-surface); }
+
+.grid { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(165px, 1fr)); }
+.grid-2 { display: grid; gap: 16px; grid-template-columns: repeat(auto-fit, minmax(min(420px, 100%), 1fr)); }
+
+.card {
+  background: var(--card); border-radius: 16px; padding: 16px 18px;
+  border: 1px solid color-mix(in srgb, var(--line) 50%, transparent);
+}
+.card h2 { font: var(--mat-sys-title-medium); margin: 0 0 12px; display: flex; align-items: center; gap: 8px; }
+
+.stat {
+  @extend .card;
+  .label { color: var(--muted); font-size: 13px; display: flex; align-items: center; gap: 6px; }
+  .label .material-symbols-outlined { font-size: 18px; }
+  .value { font-size: 28px; font-weight: 500; margin-top: 6px; }
+  .value small { font-size: 14px; color: var(--muted); font-weight: 400; margin-left: 4px; }
+  .sub { color: var(--muted); font-size: 12px; margin-top: 4px; }
+}
+
+/* ---------- tabelle semplici ---------- */
+table.data {
+  width: 100%; border-collapse: collapse; font-size: 13px;
+  th { text-align: left; color: var(--muted); font-weight: 500; padding: 8px 10px; border-bottom: 1px solid var(--line); position: sticky; top: 0; background: var(--card); }
+  td { padding: 7px 10px; border-bottom: 1px solid color-mix(in srgb, var(--line) 40%, transparent); vertical-align: top; }
+  tr:hover td { background: color-mix(in srgb, var(--mat-sys-primary) 6%, transparent); }
+  td.num { text-align: right; font-variant-numeric: tabular-nums; white-space: nowrap; }
+}
+.table-scroll { max-height: 560px; overflow: auto; }
+
+/* ---------- etichette ---------- */
+.badge {
+  display: inline-block; padding: 2px 8px; border-radius: 999px; font-size: 11px; font-weight: 500;
+  background: var(--card-high); color: var(--muted); white-space: nowrap;
+  &.ok { background: color-mix(in srgb, var(--ok) 20%, transparent); color: var(--ok); }
+  &.warn { background: color-mix(in srgb, var(--warn) 20%, transparent); color: var(--warn); }
+  &.bad { background: color-mix(in srgb, var(--bad) 20%, transparent); color: var(--bad); }
+  &.info { background: color-mix(in srgb, var(--mat-sys-primary) 20%, transparent); color: var(--mat-sys-primary); }
+}
+
+.error-box {
+  background: color-mix(in srgb, var(--bad) 14%, transparent); color: var(--bad);
+  border-radius: 12px; padding: 10px 14px; margin-bottom: 16px; display: flex; gap: 8px; align-items: center;
+}
+.muted { color: var(--muted); }
+.ok { color: var(--ok); }
+.warn { color: var(--warn); }
+.bad { color: var(--bad); }
+.row { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; }
+.spacer { flex: 1; }
+.full { width: 100%; }

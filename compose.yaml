@@ -1,0 +1,15 @@
+# Avvia tutti i servizi: docker compose up -d --build
+# Ogni progetto resta avviabile anche da solo dalla propria cartella.
+name: solis
+
+include:
+  - database/compose.yaml
+  - inverter/compose.yaml
+  - openmeteo/compose.yaml
+  - advisor/compose.yaml
+  - webapp/compose.yaml
+
+# Rete comune a tutti i servizi, con IPv6 (Docker assegna da solo una subnet ULA e il NAT verso l'esterno)
+networks:
+  default:
+    enable_ipv6: true

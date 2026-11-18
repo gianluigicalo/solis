@@ -1,0 +1,102 @@
+<div class="page">
+  <div class="page-header">
+    <h1>Registri inverter</h1>
+    @if (data(); as d) {
+      <span class="meta wide-only">Lettura {{ fmtFullDateTime(d.readAt) }} · aggiornamento ogni minuto</span>
+    }
+  </div>
+
+  @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
+  @if (error(); as e) {
+    <div class="error-box"><span class="material-symbols-outlined">error</span>{{ e }}</div>
+  }
+
+  @if (data()) {
+    <div class="row toolbar">
+      <mat-form-field subscriptSizing="dynamic" class="filter">
+        <mat-label>Cerca in tutti i registri</mat-label>
+        <span matPrefix class="material-symbols-outlined prefix">search</span>
+        <input matInput [ngModel]="filter()" (ngModelChange)="filter.set($event)"
+               placeholder="nome, valore, descrizione, indirizzo, fonte…">
+        @if (filter()) {
+          <button matSuffix mat-icon-button aria-label="Cancella filtro" (click)="filter.set('')">
+            <span class="material-symbols-outlined">close</span>
+          </button>
+        }
+      </mat-form-field>
+      <mat-slide-toggle [ngModel]="showReserved()" (ngModelChange)="showReserved.set($event)">Mostra riservati</mat-slide-toggle>
+      <button mat-stroked-button type="button" (click)="refresh()" [disabled]="refreshing()"
+              matTooltip="Rilegge subito i registri; altrimenti si aggiornano ogni minuto">
+        <span class="material-symbols-outlined" [class.spin]="refreshing()">refresh</span> Aggiorna
+      </button>
+      @if (query()) {
+        <span class="meta">{{ matches() }} {{ matches() === 1 ? 'registro trovato' : 'registri trovati' }}</span>
+      }
+    </div>
+
+    <ng-template #table let-rows>
+      <div class="table-scroll">
+        <table class="data">
+          <thead>
+            <tr><th>Registro</th><th class="num">Indirizzo</th><th>Valore</th><th>Descrizione</th><th class="num">Valore registro</th><th>Fonte</th><th>Accesso</th></tr>
+          </thead>
+          <tbody>
+            @for (r of rows; track r.name) {
+              <tr>
+                <td class="name"><code>{{ r.name }}</code></td>
+                <td data-label="Indirizzo" class="num muted address">{{ r.register }}</td>
+                <td data-label="Valore" class="value" [class.decoded]="r.decoded"><span>{{ r.value }} @if (r.unit) { <span class="muted">{{ r.unit }}</span> }</span></td>
+                <td data-label="Descrizione">{{ r.description }}</td>
+                <td data-label="Valore registro" class="num raw">{{ r.raw }}</td>
+                <td data-label="Fonte">
+                  @switch (r.source) {
+                    @case ('UNOFFICIAL') { <span class="badge warn" [matTooltip]="r.tooltip">{{ r.sourceLabel }}</span> }
+                    @case ('SOLISCLOUD') { <span class="badge info" [matTooltip]="r.tooltip">{{ r.sourceLabel }}</span> }
+                    @case ('RESERVED') { <span class="badge">{{ r.sourceLabel }}</span> }
+                    @default { <span class="badge ok">{{ r.sourceLabel }}</span> }
+                  }
+                </td>
+                <td data-label="Accesso">
+                  <span class="badge" [class.info]="r.access === 'READ_WRITE'"
+                        [matTooltip]="r.access === 'READ_WRITE' ? 'Holding register: si può scrivere (l\'app per ora lo legge soltanto)' : 'Input register: si può solo leggere'"
+                  >{{ r.accessLabel }}</span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </ng-template>
+
+    @if (query()) {
+      <!-- con il filtro: risultati di tutte le sezioni, uno sotto l'altro -->
+      @for (s of filtered(); track s.id) {
+        <h2 class="section-title">{{ s.label }} <span class="muted">({{ s.rows.length }})</span></h2>
+        <div class="card"><ng-container *ngTemplateOutlet="table; context: { $implicit: s.rows }" /></div>
+      } @empty {
+        <div class="card empty">Nessun registro corrisponde a «{{ filter() }}».</div>
+      }
+    } @else {
+      <div class="card">
+        <!-- sezioni: barra scorrevole (trascinando con il dito o con il mouse, rotellina, frecce) -->
+        <div class="tabbar">
+          <button mat-icon-button class="arrow" aria-label="Sezioni precedenti" [disabled]="!canScrollLeft()"
+                  (click)="scrollTabs(strip, -1)"><span class="material-symbols-outlined">chevron_left</span></button>
+          <div class="strip" #strip role="tablist" (scroll)="updateArrows(strip)" (wheel)="wheel($event, strip)"
+               (pointerdown)="dragStart($event, strip)" (pointermove)="dragMove($event, strip)"
+               (pointerup)="dragEnd($event, strip)" (pointercancel)="dragEnd($event, strip)">
+            @for (s of tabs(); track s.id) {
+              <button class="tab" role="tab" type="button" [class.active]="s.id === current().id"
+                      [attr.aria-selected]="s.id === current().id" (click)="select(s.id, $event)">
+                {{ s.label }} <span class="count">({{ s.rows.length }})</span>
+              </button>
+            }
+          </div>
+          <button mat-icon-button class="arrow" aria-label="Sezioni successive" [disabled]="!canScrollRight()"
+                  (click)="scrollTabs(strip, 1)"><span class="material-symbols-outlined">chevron_right</span></button>
+        </div>
+        <ng-container *ngTemplateOutlet="table; context: { $implicit: current().rows }" />
+      </div>
+    }
+  }
+</div>

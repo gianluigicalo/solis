@@ -1,0 +1,36 @@
+spring:
+  application:
+    name: solis-modbus-reader
+  threads:
+    virtual:
+      # Tomcat, @Async e scheduler usano virtual threads (Java 21+). Su Java 24+ i blocchi
+      # synchronized non bloccano più il carrier thread (JEP 491).
+      enabled: true
+
+server:
+  port: 8080
+
+solis:
+  # Indirizzo del datalogger / gateway Modbus TCP dell'inverter
+  host: 192.168.1.84
+  port: 502
+  # Slave/unit id dell'inverter (indirizzo RS485)
+  unit-id: 1
+  # Timeout di ogni richiesta Modbus
+  timeout: 5s
+  # Per quanto tempo riutilizzare il valore letto di un input register (evita di sovraccaricare il datalogger)
+  cache-ttl: 5s
+  # Per quanto tempo riutilizzare il valore di un holding register (impostazioni modificabili: cambiano di rado)
+  holding-cache-ttl: 10m
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
+
+logging:
+  level:
+    io.netty: warn
+    com.digitalpetri: warn

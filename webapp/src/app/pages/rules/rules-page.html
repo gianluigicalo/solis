@@ -1,0 +1,132 @@
+<div class="page">
+  <div class="page-header">
+    <h1>Regole e consigli</h1>
+    <button mat-stroked-button (click)="reload(); loadAdvice()"><span class="material-symbols-outlined">refresh</span> Aggiorna</button>
+    <button mat-flat-button (click)="create()"><span class="material-symbols-outlined">add</span> Nuova regola</button>
+  </div>
+
+  @if (loading()) { <mat-progress-bar mode="indeterminate" /> }
+  @if (error(); as e) { <div class="error-box"><span class="material-symbols-outlined">error</span>{{ e }}</div> }
+
+  <!-- consiglio attuale -->
+  <div class="card advice">
+    @if (advice(); as a) {
+      <div class="advice-head">
+        <span class="material-symbols-outlined action-icon" [class]="action(a.action).css">{{ action(a.action).icon }}</span>
+        <div class="advice-text">
+          <div class="muted small">Consiglio attuale · {{ fmtFullDateTime(a.evaluatedAt) }}</div>
+          <div class="advice-action">{{ a.actionDescription }}</div>
+          <div>{{ a.reason }} @if (a.decidedBy) { <span class="muted">(regola {{ a.decidedBy }})</span> }</div>
+        </div>
+        @if (a.context.forecast; as f) {
+          <div class="forecast">
+            <div><span class="muted">SOC</span>{{ fmtNumber(a.context.inverter?.batterySoc ?? null, 0) }} %</div>
+            <div><span class="muted">FV restante oggi</span>{{ fmtWh(f.todayRemainingWh) }}</div>
+            <div><span class="muted">FV domani</span>{{ fmtWh(f.tomorrowWh) }}</div>
+            <div><span class="muted">Domani oltre AC</span>{{ fmtWh(f.tomorrowAboveAcWh) }}</div>
+          </div>
+        }
+      </div>
+      @for (w of a.context.warnings; track w) { <div class="badge warn warning">{{ w }}</div> }
+      <table class="data evals">
+        <thead><tr><th></th><th>Regola</th><th>Azione</th><th>Esito</th></tr></thead>
+        <tbody>
+          @for (e of a.evaluations; track e.ruleId) {
+            <tr [class.decisive]="e.decisive">
+              <td><span class="material-symbols-outlined" [class.ok]="e.matched" [class.muted]="!e.matched">{{ e.matched ? 'check_circle' : 'radio_button_unchecked' }}</span></td>
+              <td>{{ e.ruleName }} <span class="muted">· {{ e.ruleId }}</span></td>
+              <td><span class="badge" [class]="action(e.action).css">{{ action(e.action).label }}</span></td>
+              <td>{{ e.reason }}</td>
+            </tr>
+          } @empty {
+            <tr><td colspan="4" class="muted">Nessuna regola attiva</td></tr>
+          }
+        </tbody>
+      </table>
+    } @else if (adviceError(); as e) {
+      <div class="error-box">{{ e }}</div>
+    } @else {
+      <mat-progress-bar mode="indeterminate" />
+    }
+  </div>
+
+  <!-- regole -->
+  <h2 class="section-title">Regole ({{ rules().length }})</h2>
+  <div class="card">
+    <table class="data rules">
+      <thead><tr><th>Attiva</th><th class="num">Priorità</th><th>Regola</th><th>Azione</th><th>Parametri</th><th></th></tr></thead>
+      <tbody>
+        @for (r of rules(); track r.id) {
+          <tr [class.disabled]="!r.enabled">
+            <td><mat-slide-toggle [checked]="r.enabled" (change)="toggle(r, $event.checked)" [matTooltip]="r.enabled ? 'Disattiva' : 'Attiva'" /></td>
+            <td class="num">{{ r.priority }}</td>
+            <td>
+              <div>{{ r.name }}</div>
+              <div class="muted small"><code>{{ r.id }}</code> · {{ r.type }}</div>
+            </td>
+            <td><span class="badge" [class]="typeAction(r).css">{{ typeAction(r).label }}</span></td>
+            <td class="params">
+              @for (p of params(r); track p.name) {
+                <span class="param" [matTooltip]="p.description"><span class="muted">{{ p.name }}</span> {{ p.text }}</span>
+              }
+            </td>
+            <td class="actions">
+              <button mat-icon-button (click)="edit(r)" matTooltip="Modifica"><span class="material-symbols-outlined">edit</span></button>
+              <button mat-icon-button (click)="create(r)" matTooltip="Duplica"><span class="material-symbols-outlined">content_copy</span></button>
+              <button mat-icon-button (click)="remove(r)" matTooltip="Elimina"><span class="material-symbols-outlined bad">delete</span></button>
+            </td>
+          </tr>
+        } @empty {
+          <tr><td colspan="6" class="muted">Nessuna regola. Creane una con "Nuova regola".</td></tr>
+        }
+      </tbody>
+    </table>
+  </div>
+
+  <!-- tipi disponibili -->
+  <h2 class="section-title">Tipi di regola disponibili</h2>
+  <div class="grid-2">
+    @for (t of types(); track t.id) {
+      <div class="card type">
+        <h2><code>{{ t.id }}</code> <span class="badge" [class]="action(t.action).css">{{ action(t.action).label }}</span></h2>
+        <p class="muted">{{ t.description }}</p>
+        <table class="data">
+          <thead><tr><th>Parametro</th><th>Default</th><th>Limiti</th><th>Descrizione</th></tr></thead>
+          <tbody>
+            @for (p of t.parameters; track p.name) {
+              <tr>
+                <td><code>{{ p.name }}</code></td>
+                <td class="num">{{ fmtValue(p.defaultValue) }} {{ p.unit }}</td>
+                <td class="muted">{{ p.min !== undefined && p.min !== null ? fmtValue(p.min) + '–' + fmtValue(p.max!) : '' }}</td>
+                <td>{{ p.description }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </div>
+
+  <div class="grid-2 bottom">
+    <app-settings-card />
+    <div class="card">
+      <h2><span class="material-symbols-outlined">history</span>Ultimi consigli</h2>
+      <div class="table-scroll short">
+        <table class="data">
+          <thead><tr><th>Quando</th><th>Azione</th><th>Motivo</th></tr></thead>
+          <tbody>
+            @for (h of history(); track h.time) {
+              <tr>
+                <td class="nowrap">{{ fmtFullDateTime(h.time) }}</td>
+                <td><span class="badge" [class]="action(h.action).css">{{ action(h.action).label }}</span></td>
+                <td>{{ h.reason }}</td>
+              </tr>
+            } @empty {
+              <tr><td colspan="3" class="muted">Nessun consiglio registrato negli ultimi 7 giorni</td></tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>

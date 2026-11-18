@@ -1,0 +1,22 @@
+services:
+  openmeteo:
+    build: .
+    image: openmeteo-api:latest
+    container_name: openmeteo-api
+    restart: unless-stopped
+    ports:
+      # solo da questa macchina, IPv4 e IPv6 (BIND_ADDRESS=0.0.0.0 e BIND_ADDRESS6=[::] per esporre in rete)
+      - "${BIND_ADDRESS:-127.0.0.1}:${OPENMETEO_HTTP_PORT:-10081}:8080"
+      - "${BIND_ADDRESS6:-[::1]}:${OPENMETEO_HTTP_PORT:-10081}:8080"
+    environment:
+      TZ: Europe/Rome
+      # Sovrascrivono i valori di application.yml (binding "relaxed" di Spring Boot)
+      OPENMETEO_LATITUDE: ${OPENMETEO_LATITUDE:-41.1588}
+      OPENMETEO_LONGITUDE: ${OPENMETEO_LONGITUDE:-16.7667}
+      OPENMETEO_TIMEZONE: ${OPENMETEO_TIMEZONE:-Europe/Rome}
+      # Orientamento delle falde (tilt 0 = orizzontale; azimuth 0 = sud, -90 = est, 90 = ovest)
+      OPENMETEO_PLANES_FALDA10_TILT: ${OPENMETEO_PLANES_FALDA10_TILT:-10}
+      OPENMETEO_PLANES_FALDA10_AZIMUTH: ${OPENMETEO_PLANES_FALDA10_AZIMUTH:-18}
+      OPENMETEO_PLANES_FALDA17_TILT: ${OPENMETEO_PLANES_FALDA17_TILT:-17}
+      OPENMETEO_PLANES_FALDA17_AZIMUTH: ${OPENMETEO_PLANES_FALDA17_AZIMUTH:-18}
+      OPENMETEO_CACHE_TTL: ${OPENMETEO_CACHE_TTL:-10m}

@@ -1,0 +1,33 @@
+
+# 1. Definizione delle variabili
+# Nota: Abbiamo aggiunto /api/v1 al percorso base
+@baseUrl = https://api.mercatoelettrico.org/request/api/v1
+@username = gianluigicalo4989
+@password = 4qySdRk@MJH9Zf4
+
+### 
+# 2. Richiesta di Autenticazione (Auth)
+# @name gmeAuth
+POST {{baseUrl}}/Auth
+Content-Type: application/json
+
+{
+  "Login": "{{username}}",
+  "Password": "{{password}}"
+}
+
+### 
+# 3. Richiesta Dati di Mercato (es. Prezzi MGP)
+POST {{baseUrl}}/RequestData
+# httpyac pesca in automatico il campo "token" dalla risposta "gmeAuth"
+Authorization: Bearer {{gmeAuth.token}}
+Content-Type: application/json
+
+{
+  "Platform": "PublicMarketResults",
+  "Segment": "MGP",
+  "DataName": "ME_ZonalPrices",
+  "IntervalStart": 20261118,
+  "IntervalEnd": 20261118,
+  "Attributes": {}
+}

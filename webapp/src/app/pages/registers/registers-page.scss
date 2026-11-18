@@ -1,0 +1,65 @@
+.toolbar { gap: 16px; flex-wrap: wrap; align-items: center; margin: 4px 0 16px; }
+.filter { width: min(420px, 100%); }
+.prefix { margin: 0 4px 0 12px; color: var(--muted); }
+.section-title { margin: 20px 0 8px; }
+td.name code { font-size: 14px; font-weight: 700; }
+td.address { font-family: 'Roboto Mono', monospace; font-size: 12px; }
+td.value { white-space: normal; min-width: 120px; }
+td.value.decoded { font-weight: 500; }
+td.raw { font-family: 'Roboto Mono', monospace; font-size: 12px; white-space: nowrap; }
+.empty { color: var(--muted); }
+
+/* barra delle sezioni scorrevole */
+.tabbar { display: flex; align-items: center; gap: 4px; border-bottom: 1px solid var(--line); margin: -4px -4px 8px; }
+.arrow { flex: none; }
+.strip {
+  flex: 1; min-width: 0; display: flex; gap: 2px; overflow-x: auto; scroll-behavior: smooth;
+  scrollbar-width: none; touch-action: pan-x; cursor: grab; user-select: none;
+  &::-webkit-scrollbar { display: none; }
+  &.dragging { cursor: grabbing; scroll-behavior: auto; }
+}
+.tab {
+  flex: none; border: 0; background: none; color: var(--muted); font: 500 14px Roboto, sans-serif;
+  padding: 14px 16px 12px; border-bottom: 2px solid transparent; cursor: pointer; white-space: nowrap;
+  &:hover { color: var(--mat-sys-on-surface); }
+  &.active { color: var(--mat-sys-on-surface); border-bottom-color: var(--mat-sys-primary); }
+  .count { color: var(--muted); font-weight: 400; }
+}
+.strip.dragging .tab { cursor: grabbing; }
+
+/* stesse larghezze in tutte le sezioni, anche con il filtro */
+@media (min-width: 900px) {
+  table.data { table-layout: fixed; width: 100%; }
+  th:nth-child(1) { width: 19%; }
+  th:nth-child(2) { width: 7%; }
+  th:nth-child(3) { width: 15%; }
+  th:nth-child(5) { width: 11%; }
+  th:nth-child(6) { width: 10%; }
+  th:nth-child(7) { width: 10%; }
+  td:first-child code { overflow-wrap: anywhere; }
+}
+
+/* smartphone: una scheda per registro, tutte le colonne visibili con la loro etichetta */
+@media (max-width: 700px) {
+  table.data, table.data tbody, table.data tr, table.data td { display: block; width: auto; }
+  table.data thead { display: none; }
+  table.data tr { padding: 10px 4px; border-bottom: 1px solid var(--line); }
+  table.data td { border: none; padding: 2px 0; text-align: left; white-space: normal; }
+  table.data td[data-label] { display: grid; grid-template-columns: 112px 1fr; gap: 8px; }
+  table.data td[data-label]::before {
+    content: attr(data-label); color: var(--muted); font: 400 12px Roboto, sans-serif; letter-spacing: normal;
+  }
+  table.data td[data-label] > * { justify-self: start; }
+  .table-scroll { max-height: none; overflow: visible; }
+  td.raw { white-space: normal; overflow-wrap: anywhere; }
+  /* nome, riga vuota, valore, descrizione, valore registro, indirizzo, fonte */
+  table.data tr { display: flex; flex-direction: column; }
+  td.name { padding-bottom: 1.2em !important; }
+  td.address { order: 1; font-family: inherit; font-size: inherit; color: inherit; }
+  td[data-label="Fonte"] { order: 2; }
+  td[data-label="Accesso"] { order: 3; }
+}
+
+.spin { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+button .material-symbols-outlined { font-size: 20px; vertical-align: middle; margin-right: 4px; }

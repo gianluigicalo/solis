@@ -1,0 +1,32 @@
+.small { font-size: 12px; }
+code { font-size: 12px; }
+.nowrap { white-space: nowrap; }
+
+.advice {
+  .advice-head { display: flex; gap: 18px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+  .action-icon {
+    font-size: 44px; padding: 10px; border-radius: 16px; background: var(--card-high);
+    &.ok { color: var(--ok); } &.warn { color: var(--warn); } &.bad { color: var(--bad); } &.info { color: var(--mat-sys-primary); }
+  }
+  .advice-text { flex: 1; min-width: min(280px, 100%); }
+  .advice-action { font: var(--mat-sys-title-large); margin: 2px 0 4px; }
+  .forecast {
+    display: grid; grid-template-columns: repeat(2, minmax(130px, auto)); gap: 6px 20px;
+    div { display: flex; flex-direction: column; font-size: 15px; }
+    .muted { font-size: 11px; }
+  }
+  .warning { margin: 0 6px 8px 0; white-space: normal; }
+  .evals tr.decisive td { background: color-mix(in srgb, var(--ok) 10%, transparent); }
+}
+
+.rules {
+  tr.disabled td { opacity: .55; }
+  .params { display: flex; flex-wrap: wrap; gap: 6px; }
+  .param { background: var(--card-high); border-radius: 8px; padding: 2px 8px; font-size: 12px; white-space: nowrap; }
+  .actions { white-space: nowrap; text-align: right; }
+}
+
+.type h2 { flex-wrap: wrap; }
+.type p { font-size: 13px; line-height: 1.5; }
+.bottom { margin-top: 24px; }
+.short { max-height: 420px; }

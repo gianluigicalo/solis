@@ -1,0 +1,40 @@
+spring:
+  application:
+    name: openmeteo-api
+  threads:
+    virtual:
+      enabled: true
+
+server:
+  port: 8080
+
+openmeteo:
+  # Coordinate fisse usate per tutte le richieste (41° 09' 31.7" N, 16° 46' 00.1" E)
+  latitude: 41.1588
+  longitude: 16.7667
+  # Fuso orario usato per orari e aggregazioni giornaliere, se il client non ne indica un altro
+  timezone: Europe/Rome
+  # Falde dell'impianto: gruppi di pannelli con la stessa inclinazione e orientamento.
+  # tilt: inclinazione (0° = orizzontale); azimuth: 0° = sud, -90° = est, 90° = ovest.
+  # Usati per global_tilted_irradiance nell'endpoint /solar (una richiesta Open-Meteo per falda).
+  # I pannelli guardano a sud seguendo l'edificio, ruotato di circa 18° verso ovest rispetto al sud (SSO).
+  planes:
+    falda10:
+      tilt: 10
+      azimuth: 18
+    falda17:
+      tilt: 17
+      azimuth: 18
+  timeout: 10s
+  # Le risposte di Open-Meteo vengono riutilizzate per questo tempo (il piano gratuito ha limiti giornalieri)
+  cache-ttl: 10m
+  forecast-url: https://api.open-meteo.com/v1/forecast
+  archive-url: https://archive-api.open-meteo.com/v1/archive
+  air-quality-url: https://air-quality-api.open-meteo.com/v1/air-quality
+
+springdoc:
+  swagger-ui:
+    path: /swagger-ui.html
+    operations-sorter: alpha
+  api-docs:
+    path: /v3/api-docs
